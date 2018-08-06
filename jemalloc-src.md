@@ -8,7 +8,17 @@
 #define LG_PAGE         12 // One page is 2^LG_PAGE bytes
 #define LG_HUGEPAGE     21 // One Huge page is 2^LG_HUGEPAGE bytes
 
+#define SMALL_MAXCLASS  ((1<<13) + (3<<11))  // 14336
+    tcache_maxclass 32KB
+    --> arena_malloc():
+        size<SMALL_MAXCLASS  --> tcache_alloc_small
+        size<tcache_maxclass --> tcache_alloc_large
+        arena_malloc_hard-->
+
 #define JEMALLOC_N(n)   je_##n  // 修改一些全局符号的名字
+
+#define NBINS 36
+#define NSIZES 232
 
 jemalloc-5.1.0流程：
 
@@ -132,6 +142,8 @@ jemalloc_constructor
     je_large_malloc
     je_large_palloc
     je_arena_extent_alloc_large
+        --> extent.c: je_extents_alloc --> extent_recycle --> extent_recycle_extract
+            
     je_extent_alloc_wrapper
     extent_alloc_retained
     extent_grow_retained
